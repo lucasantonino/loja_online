@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { sanitizeNextPath } from "@/components/auth/LoginForm";
+import { useCart } from "@/components/store/CartContext";
 
 interface RegisterFormProps {
   nextPath?: string;
@@ -11,6 +12,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ nextPath }: RegisterFormProps) {
   const router = useRouter();
+  const { refreshCart } = useCart();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -51,6 +53,7 @@ export function RegisterForm({ nextPath }: RegisterFormProps) {
         return;
       }
 
+      await refreshCart();
       const target = sanitizeNextPath(nextPath) ?? "/conta";
       router.push(target);
       router.refresh();

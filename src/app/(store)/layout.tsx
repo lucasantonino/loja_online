@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Menu, Search, ShoppingBag, User } from "lucide-react";
+import { Menu, Search, User } from "lucide-react";
+import { CartProvider } from "@/components/store/CartContext";
+import { CartDrawer, CartHeaderButton } from "@/components/store/CartDrawer";
 import { getServerSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { isDatabaseConfigured } from "@/lib/env";
@@ -68,10 +70,11 @@ export default async function StoreLayout({ children }: Readonly<{ children: Rea
     : "Entrega local configuravel por CEP e bairro · Pagamento seguro via Pix e Cartao";
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface-page text-text-primary">
-      <div className="border-b border-border-default bg-surface-subtle px-4 py-2 text-center text-xs text-text-secondary">
-        {coverageBanner}
-      </div>
+    <CartProvider>
+      <div className="flex min-h-screen flex-col bg-surface-page text-text-primary">
+        <div className="border-b border-border-default bg-surface-subtle px-4 py-2 text-center text-xs text-text-secondary">
+          {coverageBanner}
+        </div>
 
       <header className="sticky top-0 z-30 border-b border-border-default bg-surface-page/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -139,14 +142,7 @@ export default async function StoreLayout({ children }: Readonly<{ children: Rea
               <User className="h-5 w-5" aria-hidden="true" />
               <span className="hidden sm:inline">{session ? session.name.split(" ")[0] : "Entrar"}</span>
             </Link>
-            <Link
-              href="/carrinho"
-              aria-label="Sacola de compras"
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-border-default px-3 text-sm font-medium text-text-primary hover:bg-surface-subtle"
-            >
-              <ShoppingBag className="h-5 w-5" aria-hidden="true" />
-              <span className="hidden sm:inline">Sacola</span>
-            </Link>
+            <CartHeaderButton />
           </div>
         </div>
       </header>
@@ -201,6 +197,8 @@ export default async function StoreLayout({ children }: Readonly<{ children: Rea
           </div>
         </div>
       </footer>
+      <CartDrawer />
     </div>
+    </CartProvider>
   );
 }

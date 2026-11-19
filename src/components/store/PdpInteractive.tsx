@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
+import { useCart } from "@/components/store/CartContext";
 import { formatBrlFromCents } from "@/lib/money";
 import {
   computeOptionAvailability,
@@ -47,6 +48,7 @@ interface QuoteFeedback {
 }
 
 export function PdpInteractive({ product }: PdpInteractiveProps) {
+  const { addItem, mutating: cartMutating } = useCart();
   const [selectedByOptionId, setSelectedByOptionId] = useState<Record<string, string | undefined>>(
     {},
   );
@@ -103,7 +105,7 @@ export function PdpInteractive({ product }: PdpInteractiveProps) {
     }));
   }
 
-  function handleAddToBag() {
+  async function handleAddToBag() {
     setSelectionError(null);
     setBagFeedback(null);
 
@@ -121,9 +123,13 @@ export function PdpInteractive({ product }: PdpInteractiveProps) {
       return;
     }
 
-    setBagFeedback(
-      `Variante "${activeVariant.label}" (SKU ${activeVariant.sku}) validada com ${activeVariant.availableStock} un. em estoque. O carrinho persistente sera ativado na tarefa T09.`,
-    );
+    const result = await addItem(activeVariant.id, 1);
+    if (!result.ok) {
+      setSelectionError(result.error ?? "Nao foi possivel adicionar a sacola.");
+      return;
+    }
+
+    setBagFeedback(`Adicionado: ${product.name} (${activeVariant.label}).`);
   }
 
   async function handleQuoteSubmit(event: FormEvent<HTMLFormElement>) {
@@ -375,11 +381,15 @@ export function PdpInteractive({ product }: PdpInteractiveProps) {
 
           <button
             type="button"
-            onClick={handleAddToBag}
-            disabled={buyButtonDisabled}
+            onClick={() => void handleAddToBag()}
+            disabled={buyButtonDisabled || cartMutating}
             className="min-h-12 w-full rounded-md bg-brand-primary px-6 py-3 text-sm font-semibold text-text-inverse transition-colors hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {buyButtonDisabled ? "Produto Indisponivel" : "Adicionar a Sacola"}
+            {buyButtonDisabled
+              ? "Produto Indisponivel"
+              : cartMutating
+                ? "Adicionando..."
+                : "Adicionar a Sacola"}
           </button>
 
           {/* Simulador de Entrega Local */}
@@ -470,11 +480,11 @@ export function PdpInteractive({ product }: PdpInteractiveProps) {
         </div>
         <button
           type="button"
-          onClick={handleAddToBag}
-          disabled={buyButtonDisabled}
+          onClick={() => void handleAddToBag()}
+          disabled={buyButtonDisabled || cartMutating}
           className="min-h-11 rounded-md bg-brand-primary px-5 text-sm font-semibold text-text-inverse disabled:opacity-50"
         >
-          {buyButtonDisabled ? "Esgotado" : "Adicionar"}
+          {buyButtonDisabled ? "Esgotado" : cartMutating ? "..." : "Adicionar"}
         </button>
       </div>
     </div>

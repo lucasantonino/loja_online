@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useCart } from "@/components/store/CartContext";
 
 interface LoginFormProps {
   nextPath?: string;
@@ -21,6 +22,7 @@ export function sanitizeNextPath(nextPath?: string): string | null {
 
 export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
+  const { refreshCart } = useCart();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         return;
       }
 
+      await refreshCart();
       const safeNext = sanitizeNextPath(nextPath);
       const target =
         safeNext ?? (payload.data.user.role === "ADMIN" ? "/admin" : "/conta");
